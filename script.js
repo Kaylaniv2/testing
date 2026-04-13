@@ -1,6 +1,9 @@
+// ===== Referencias al DOM =====
 const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
-let grafico;
+const canvas = document.getElementById("grafico");
+
+let grafico = null;
 
 // ===== LocalStorage =====
 function obtenerGastos() {
@@ -11,9 +14,10 @@ function guardarGastos(gastos) {
   localStorage.setItem("gastos", JSON.stringify(gastos));
 }
 
-// ===== Tabla =====
+// ===== Render tabla =====
 function renderTabla() {
   tabla.innerHTML = "";
+
   const gastos = obtenerGastos();
 
   gastos.forEach(gasto => {
@@ -27,26 +31,23 @@ function renderTabla() {
   });
 }
 
-// ===== Gráfico =====
+// ===== Render gráfico =====
 function renderGrafico() {
   const gastos = obtenerGastos();
-  const totalesPorCategoria = {};
+  const totales = {};
 
   gastos.forEach(g => {
-    totalesPorCategoria[g.categoria] =
-      (totalesPorCategoria[g.categoria] || 0) + g.monto;
+    totales[g.categoria] = (totales[g.categoria] || 0) + g.monto;
   });
 
-  const categorias = Object.keys(totalesPorCategoria);
-  const montos = Object.values(totalesPorCategoria);
-
-  const ctx = document.getElementById("grafico");
+  const categorias = Object.keys(totales);
+  const montos = Object.values(totales);
 
   if (grafico) {
     grafico.destroy();
   }
 
-  grafico = new Chart(ctx, {
+  grafico = new Chart(canvas, {
     type: "pie",
     data: {
       labels: categorias,
@@ -65,8 +66,8 @@ function renderGrafico() {
   });
 }
 
-// ===== Evento =====
-form.addEventListener("submit", e => {
+// ===== Evento submit =====
+form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const gasto = {
