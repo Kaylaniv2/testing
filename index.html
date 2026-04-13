@@ -13,7 +13,7 @@
 <form id="form-gastos">
   <input type="date" id="fecha" required>
   <input type="text" id="categoria" placeholder="Categoría" required>
-  <input type="number" id="monto" placeholder="Monto" required>
+  <input type="number" id="monto" placeholder="Monto" min="0" required>
   <button type="submit">Agregar gasto</button>
 </form>
 
@@ -30,9 +30,13 @@
   <tbody id="tabla-gastos"></tbody>
 </table>
 
+<h2>Gastos por categoría</h2>
 <canvas id="grafico"></canvas>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Tu script -->
 <script src="script.js" defer></script>
 
 </body>
