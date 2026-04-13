@@ -27,7 +27,7 @@ async function obtenerGastos() {
 }
 
 // ===============================
-// Renderizar tabla
+// Renderizar tabla (EXTENDIDA)
 // ===============================
 async function renderTabla() {
   tabla.innerHTML = "";
@@ -41,6 +41,9 @@ async function renderTabla() {
       <td>${gasto.fecha}</td>
       <td>${gasto.categoria}</td>
       <td>$${gasto.monto}</td>
+      <td>
+        <button onclick="borrarGasto('${gasto.id}')">🗑️</button>
+      </td>
     `;
 
     tabla.appendChild(fila);
@@ -84,6 +87,24 @@ async function renderGrafico() {
       }]
     }
   });
+}
+
+// ===============================
+// 🆕 Borrar gasto (NUEVO)
+// ===============================
+async function borrarGasto(id) {
+  const confirmar = confirm("¿Eliminar este gasto?");
+  if (!confirmar) return;
+
+  try {
+    await db.collection("gastos").doc(id).delete();
+    alert("Gasto eliminado ✅");
+    await renderTabla();
+    await renderGrafico();
+  } catch (error) {
+    console.error("❌ Error al eliminar gasto:", error);
+    alert("Error al eliminar el gasto");
+  }
 }
 
 // ===============================
