@@ -11,7 +11,7 @@
       padding: 20px;
     }
 
-    form, table, canvas {
+    form, table, canvas, .card {
       background: #fff;
       padding: 15px;
       border-radius: 8px;
@@ -19,15 +19,15 @@
     }
 
     #grafico {
-      max-width: 400px;
+      max-width: 500px;
       max-height: 400px;
       display: block;
       margin: 20px auto;
     }
 
     table {
-      margin-top: 10px;
       border-collapse: collapse;
+      width: 100%;
     }
 
     th, td {
@@ -38,15 +38,19 @@
       background: #eee;
     }
 
+    button, select, input {
+      padding: 6px;
+      margin-right: 6px;
+    }
+
     button {
       border: none;
-      padding: 6px 10px;
       border-radius: 4px;
       cursor: pointer;
     }
 
     button:hover {
-      opacity: 0.85;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -70,23 +74,30 @@
   </select>
 
   <input type="number" id="monto" placeholder="Monto" required>
-  <button type="submit">Agregar gasto</button>
+  <button type="submit">Guardar</button>
 </form>
 
-<!-- ✅ RESUMEN -->
-<h2>Resumen</h2>
-<div style="margin-bottom: 10px;">
-  <strong>Total:</strong> $<span id="total-general">0</span>
+<div class="card">
+  <h2>Resumen</h2>
+  <p><strong>Total general:</strong> $<span id="total-general">0</span></p>
+
+  <h3>Totales mensuales</h3>
+  <label>Mes:</label>
+  <select id="mes-select">
+    <option value="">Todos</option>
+  </select>
+
+  <p><strong>Total del mes:</strong> $<span id="total-mes">0</span></p>
 </div>
 
-<!-- ✅ FILTROS -->
-<h3>Filtrar por fechas</h3>
-<input type="date" id="desde">
-<input type="date" id="hasta">
-<button id="btn-filtrar">Filtrar</button>
-<button id="btn-limpiar">Limpiar</button>
+<div class="card">
+  <h3>Filtrar por fechas</h3>
+  <input type="date" id="desde">
+  <input type="date" id="hasta">
+  <button id="btn-filtrar">Filtrar</button>
+  <button id="btn-limpiar">Limpiar</button>
+</div>
 
-<!-- ✅ TABLA -->
 <h2>Listado de gastos</h2>
 
 <table border="1">
@@ -101,16 +112,16 @@
   <tbody id="tabla-gastos"></tbody>
 </table>
 
-<!-- ✅ GRÁFICO -->
-<h2>Gastos por categoría</h2>
+<h2>Gráficos</h2>
+
+<select id="tipo-grafico">
+  <option value="categoria">Por categoría</option>
+  <option value="mes">Comparativa mensual</option>
+</select>
+
 <canvas id="grafico"></canvas>
 
-<!-- ========================= -->
-<!-- Librerías externas -->
-<!-- ========================= -->
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -128,8 +139,7 @@
   window.db = firebase.firestore();
 </script>
 
-<!-- ✅ TU SCRIPT -->
-<script src="script.js?v=3"></script>
+<script src="script.js?v=4"></script>
 
 </body>
 </html>
