@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Control de Gastos</title>
-<style>
-  #grafico {
-    max-width: 400px;
-    max-height: 400px;
-    display: block;
-    margin: 0 auto;
-  }
-</style>
+
+  <style>
+    #grafico {
+      max-width: 400px;
+      max-height: 400px;
+      display: block;
+      margin: 20px auto;
+    }
+
+    table {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
@@ -40,10 +45,38 @@
 <h2>Gastos por categoría</h2>
 <canvas id="grafico"></canvas>
 
-<!-- Librería externa -->
+<!-- ========================= -->
+<!-- Librerías externas -->
+<!-- ========================= -->
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Tu código -->
+<!-- Firebase SDK (modo compat, clásico) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBFlFoSRfArW_GkcEAQiJQ9Sa2qAM-o3I4",
+    authDomain: "testing-gastos.firebaseapp.com",
+    projectId: "testing-gastos",
+    storageBucket: "testing-gastos.firebasestorage.app",
+    messagingSenderId: "752780947015",
+    appId: "1:752780947015:web:f340d547ad55a609590b62"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Base de datos Firestore disponible globalmente
+  const db = firebase.firestore();
+</script>
+
+<!-- ========================= -->
+<!-- Tu lógica de la app -->
+<!-- ========================= -->
 <script src="script.js"></script>
 
 </body>
