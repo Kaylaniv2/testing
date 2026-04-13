@@ -1,147 +1,237 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Control de Gastos</title>
+console.log("✅ VERSION FIRESTORE ACTIVA");
 
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f5f7fa;
-      padding: 20px;
+// ===============================
+// DOM
+// ===============================
+const form = document.getElementById("form-gastos");
+const tabla = document.getElementById("tabla-gastos");
+const canvas = document.getElementById("grafico");
+
+const totalGeneralSpan = document.getElementById("total-general");
+const totalMesSpan = document.getElementById("total-mes");
+const mesSelect = document.getElementById("mes-select");
+const tipoGraficoSelect = document.getElementById("tipo-grafico");
+
+const btnFiltrar = document.getElementById("btn-filtrar");
+const btnLimpiar = document.getElementById("btn-limpiar");
+
+let grafico = null;
+let gastoEditandoId = null;
+
+let filtroDesde = null;
+let filtroHasta = null;
+let mesSeleccionado = "";
+
+// ===============================
+// Firestore
+// ===============================
+async function obtenerGastos() {
+  let query = db.collection("gastos");
+
+  if (filtroDesde) query = query.where("fecha", ">=", filtroDesde);
+  if (filtroHasta) query = query.where("fecha", "<=", filtroHasta);
+
+  query = query.orderBy("fecha");
+
+  const snapshot = await query.get();
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ===============================
+// Utilidades
+// ===============================
+function agruparPorMes(gastos) {
+  const res = {};
+  gastos.forEach(g => {
+    const mes = g.fecha.slice(0, 7); // YYYY-MM
+    res[mes] = (res[mes] || 0) + g.monto;
+  });
+  return res;
+}
+
+// ===============================
+// Tabla
+// ===============================
+async function renderTabla() {
+  tabla.innerHTML = "";
+  const gastos = await obtenerGastos();
+
+  gastos.forEach(g => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${g.fecha}</td>
+      <td>${g.categoria}</td>
+      <td>$${g.monto}</td>
+      <td>
+        <button onclick='editarGasto(${JSON.stringify(g)})'>✏️</button>
+        <button onclick="borrarGasto('${g.id}')">🗑️</button>
+      </td>
+    `;
+    tabla.appendChild(tr);
+  });
+}
+
+// ===============================
+// Totales
+// ===============================
+async function renderTotales() {
+  const gastos = await obtenerGastos();
+
+  totalGeneralSpan.textContent =
+    gastos.reduce((a, g) => a + g.monto, 0);
+
+  const porMes = agruparPorMes(gastos);
+  mesSelect.innerHTML = `<option value="">Todos</option>`;
+
+  Object.keys(porMes).sort().forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = m;
+    mesSelect.appendChild(o);
+  });
+
+  mesSelect.value = mesSeleccionado;
+
+  if (mesSeleccionado) {
+    totalMesSpan.textContent = gastos
+      .filter(g => g.fecha.startsWith(mesSeleccionado))
+      .reduce((a, g) => a + g.monto, 0);
+  } else {
+    totalMesSpan.textContent =
+      gastos.reduce((a, g) => a + g.monto, 0);
+  }
+}
+
+// ===============================
+// Gráficos
+// ===============================
+async function renderGraficoCategoria() {
+  const gastos = await obtenerGastos();
+  const totales = {};
+
+  gastos.forEach(g =>
+    totales[g.categoria] = (totales[g.categoria] || 0) + g.monto
+  );
+
+  const total = Object.values(totales).reduce((a, b) => a + b, 0);
+
+  if (grafico) grafico.destroy();
+
+  grafico = new Chart(canvas, {
+    type: "pie",
+    data: {
+      labels: Object.keys(totales).map(
+        c => `${c} (${((totales[c] / total) * 100).toFixed(1)}%)`
+      ),
+      datasets: [{ data: Object.values(totales) }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: "Distribución por categoría" },
+        legend: { position: "bottom" }
+      }
     }
+  });
+}
 
-    form, table, canvas, .card {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
+async function renderGraficoMensual() {
+  const gastos = await obtenerGastos();
+  const porMes = agruparPorMes(gastos);
+  const meses = Object.keys(porMes).sort();
+
+  if (grafico) grafico.destroy();
+
+  grafico = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: meses,
+      datasets: [{
+        label: "Total mensual",
+        data: meses.map(m => porMes[m])
+      }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: "Comparativa mensual" }
+      }
     }
+  });
+}
 
-    #grafico {
-      max-width: 500px;
-      max-height: 400px;
-      display: block;
-      margin: 20px auto;
-    }
+// ===============================
+// CRUD
+// ===============================
+function editarGasto(g) {
+  fecha.value = g.fecha;
+  categoria.value = g.categoria;
+  monto.value = g.monto;
+  gastoEditandoId = g.id;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+async function borrarGasto(id) {
+  if (!confirm("¿Eliminar gasto?")) return;
+  await db.collection("gastos").doc(id).delete();
+  await refrescarUI();
+}
 
-    th, td {
-      padding: 8px 10px;
-    }
+form.addEventListener("submit", async e => {
+  e.preventDefault();
 
-    th {
-      background: #eee;
-    }
-
-    button, input, select {
-      padding: 6px;
-      margin-right: 6px;
-    }
-
-    button {
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>Control de Gastos</h1>
-
-<form id="form-gastos">
-  <input type="date" id="fecha" required>
-
-  <select id="categoria" required>
-    <option value="">Seleccionar categoría</option>
-    <option value="Alquiler">Alquiler</option>
-    <option value="Servicios">Servicios</option>
-    <option value="Comida">Comida</option>
-    <option value="Transporte">Transporte</option>
-    <option value="Salud">Salud</option>
-    <option value="Educación">Educación</option>
-    <option value="Otros">Otros</option>
-  </select>
-
-  <input type="number" id="monto" placeholder="Monto" required>
-  <button type="submit">Guardar</button>
-</form>
-
-<div class="card">
-  <h2>Resumen</h2>
-  <p><strong>Total general:</strong> $<span id="total-general">0</span></p>
-
-  <h3>Totales mensuales</h3>
-  <label>Mes:</label>
-  <select id="mes-select">
-    <option value="">Todos</option>
-  </select>
-
-  <p><strong>Total del mes:</strong> $<span id="total-mes">0</span></p>
-</div>
-
-<div class="card">
-  <h3>Filtrar por fechas</h3>
-  <input type="date" id="desde">
-  <input type="date" id="hasta">
-  <button id="btn-filtrar">Filtrar</button>
-  <button id="btn-limpiar">Limpiar</button>
-</div>
-
-<h2>Listado de gastos</h2>
-
-<table border="1">
-  <thead>
-    <tr>
-      <th>Fecha</th>
-      <th>Categoría</th>
-      <th>Monto</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="tabla-gastos"></tbody>
-</table>
-
-<h2>Gráficos</h2>
-
-<select id="tipo-grafico">
-  <option value="categoria">Por categoría</option>
-  <option value="mes">Comparativa mensual</option>
-</select>
-
-<canvas id="grafico"></canvas>
-
-<!-- Librerías -->
-https://cdn.jsdelivr.net/npm/chart.jsscript>
-
-https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.jsscript>
-https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBFlFoSRfArW_GkcEAQiJQ9Sa2qAM-o3I4",
-    authDomain: "testing-gastos.firebaseapp.com",
-    projectId: "testing-gastos",
-    storageBucket: "testing-gastos.appspot.com",
-    messagingSenderId: "752780947015",
-    appId: "1:752780947015:web:f340d547ad55a609590b62"
+  const gasto = {
+    fecha: fecha.value,
+    categoria: categoria.value,
+    monto: Number(monto.value)
   };
 
-  firebase.initializeApp(firebaseConfig);
-  window.db = firebase.firestore();
-</script>
+  if (gastoEditandoId) {
+    await db.collection("gastos").doc(gastoEditandoId).update(gasto);
+    gastoEditandoId = null;
+  } else {
+    await db.collection("gastos").add(gasto);
+  }
 
-script.js?v=FINAL
+  form.reset();
+  await refrescarUI();
+});
 
-</body>
-</html>
+// ===============================
+// Eventos
+// ===============================
+btnFiltrar.onclick = async () => {
+  filtroDesde = desde.value || null;
+  filtroHasta = hasta.value || null;
+  await refrescarUI();
+};
+
+btnLimpiar.onclick = async () => {
+  filtroDesde = null;
+  filtroHasta = null;
+  desde.value = "";
+  hasta.value = "";
+  await refrescarUI();
+};
+
+mesSelect.onchange = async () => {
+  mesSeleccionado = mesSelect.value;
+  await refrescarUI();
+};
+
+tipoGraficoSelect.onchange = async () => {
+  await refrescarUI();
+};
+
+// ===============================
+// Refresco general
+// ===============================
+async function refrescarUI() {
+  await renderTabla();
+  await renderTotales();
+
+  if (tipoGraficoSelect.value === "mes") {
+    await renderGraficoMensual();
+  } else {
+    await renderGraficoCategoria();
+  }
+}
+
+refrescarUI();
