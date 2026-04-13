@@ -1,7 +1,49 @@
-console.log("✅ VERSION FIRESTORE ACTIVA"); {
+console.log("✅ VERSION FIRESTORE ACTIVA");
+
+// ===============================
+// DOM
+// ===============================
+const form = document.getElementById("form-gastos");
+const tabla = document.getElementById("tabla-gastos");
+const canvas = document.getElementById("grafico");
+
+const totalGeneralSpan = document.getElementById("total-general");
+const totalMesSpan = document.getElementById("total-mes");
+const mesSelect = document.getElementById("mes-select");
+const tipoGraficoSelect = document.getElementById("tipo-grafico");
+
+const btnFiltrar = document.getElementById("btn-filtrar");
+const btnLimpiar = document.getElementById("btn-limpiar");
+
+let grafico = null;
+let gastoEditandoId = null;
+
+let filtroDesde = null;
+let filtroHasta = null;
+let mesSeleccionado = "";
+
+// ===============================
+// Firestore
+// ===============================
+async function obtenerGastos() {
+  let query = db.collection("gastos");
+
+  if (filtroDesde) query = query.where("fecha", ">=", filtroDesde);
+  if (filtroHasta) query = query.where("fecha", "<=", filtroHasta);
+
+  query = query.orderBy("fecha");
+
+  const snapshot = await query.get();
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ===============================
+// Utilidades
+// ===============================
+function agruparPorMes(gastos) {
   const res = {};
   gastos.forEach(g => {
-    const mes = g.fecha.slice(0, 7);
+    const mes = g.fecha.slice(0, 7); // YYYY-MM
     res[mes] = (res[mes] || 0) + g.monto;
   });
   return res;
@@ -193,43 +235,3 @@ async function refrescarUI() {
 }
 
 refrescarUI();
-
-
-// DOM
-const form = document.getElementById("form-gastos");
-const tabla = document.getElementById("tabla-gastos");
-const canvas = document.getElementById("grafico");
-
-const totalGeneralSpan = document.getElementById("total-general");
-const totalMesSpan = document.getElementById("total-mes");
-const mesSelect = document.getElementById("mes-select");
-const tipoGraficoSelect = document.getElementById("tipo-grafico");
-
-const btnFiltrar = document.getElementById("btn-filtrar");
-const btnLimpiar = document.getElementById("btn-limpiar");
-
-let grafico = null;
-let gastoEditandoId = null;
-
-let filtroDesde = null;
-let filtroHasta = null;
-let mesSeleccionado = "";
-
-// ===============================
-// Firestore
-// ===============================
-async function obtenerGastos() {
-  let query = db.collection("gastos");
-
-  if (filtroDesde) query = query.where("fecha", ">=", filtroDesde);
-  if (filtroHasta) query = query.where("fecha", "<=", filtroHasta);
-
-  query = query.orderBy("fecha");
-
-  const snapshot = await query.get();
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-// ===============================
-// Utilidades
-// ===============================
