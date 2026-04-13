@@ -5,6 +5,19 @@
   <title>Control de Gastos</title>
 
   <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+
+    form, table, canvas {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
     #grafico {
       max-width: 400px;
       max-height: 400px;
@@ -14,29 +27,27 @@
 
     table {
       margin-top: 10px;
+      border-collapse: collapse;
     }
-    body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #f5f7fa;
-  padding: 20px;
-}
 
-form, table, canvas {
-  background: #fff;
-  padding: 15px;
-  border-radius: 8px;
-}
+    th, td {
+      padding: 8px 10px;
+    }
 
-button {
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
+    th {
+      background: #eee;
+    }
 
-button:hover {
-  opacity: 0.85;
-}
+    button {
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
   </style>
 </head>
 
@@ -46,34 +57,51 @@ button:hover {
 
 <form id="form-gastos">
   <input type="date" id="fecha" required>
-<select id="categoria" required>
-  <option value="">Seleccionar categoría</option>
-  <option value="Alquiler">Alquiler</option>
-  <option value="Servicios">Servicios</option>
-  <option value="Comida">Comida</option>
-  <option value="Transporte">Transporte</option>
-  <option value="Salud">Salud</option>
-  <option value="Educación">Educación</option>
-  <option value="Otros">Otros</option>
-</select>
+
+  <select id="categoria" required>
+    <option value="">Seleccionar categoría</option>
+    <option value="Alquiler">Alquiler</option>
+    <option value="Servicios">Servicios</option>
+    <option value="Comida">Comida</option>
+    <option value="Transporte">Transporte</option>
+    <option value="Salud">Salud</option>
+    <option value="Educación">Educación</option>
+    <option value="Otros">Otros</option>
+  </select>
+
   <input type="number" id="monto" placeholder="Monto" required>
   <button type="submit">Agregar gasto</button>
 </form>
 
+<!-- ✅ RESUMEN -->
+<h2>Resumen</h2>
+<div style="margin-bottom: 10px;">
+  <strong>Total:</strong> $<span id="total-general">0</span>
+</div>
+
+<!-- ✅ FILTROS -->
+<h3>Filtrar por fechas</h3>
+<input type="date" id="desde">
+<input type="date" id="hasta">
+<button id="btn-filtrar">Filtrar</button>
+<button id="btn-limpiar">Limpiar</button>
+
+<!-- ✅ TABLA -->
 <h2>Listado de gastos</h2>
 
 <table border="1">
-<thead>
-  <tr>
-    <th>Fecha</th>
-    <th>Categoría</th>
-    <th>Monto</th>
-    <th>Acciones</th>
-  </tr>
-</thead>
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Categoría</th>
+      <th>Monto</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
   <tbody id="tabla-gastos"></tbody>
 </table>
 
+<!-- ✅ GRÁFICO -->
 <h2>Gastos por categoría</h2>
 <canvas id="grafico"></canvas>
 
@@ -81,10 +109,8 @@ button:hover {
 <!-- Librerías externas -->
 <!-- ========================= -->
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Firebase (modo compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -99,27 +125,11 @@ button:hover {
   };
 
   firebase.initializeApp(firebaseConfig);
-
-  // Firestore disponible globalmente
   window.db = firebase.firestore();
 </script>
 
-<!-- ========================= -->
-<!-- TU SCRIPT (IMPORTANTE EL ?v=3) -->
-<!-- ========================= -->
+<!-- ✅ TU SCRIPT -->
 <script src="script.js?v=3"></script>
-<h2>Resumen</h2>
 
-<div style="margin-bottom: 10px;">
-  <strong>Total:</strong> $<span id="total-general">0</span>
-</div>
-
-<h3>Filtrar por fechas</h3>
-
-<input type="date" id="desde">
-<input type="date" id="hasta">
-<button id="btn-filtrar">Filtrar</button>
-<button id="btn-limpiar">Limpiar</button>
-``
 </body>
 </html>
