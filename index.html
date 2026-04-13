@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gastos del Hogar</title>
+  <title>Control de Gastos</title>
 </head>
 
 <body>
@@ -12,7 +12,7 @@
 <form id="form-gastos">
   <input type="date" id="fecha" required>
   <input type="text" id="categoria" placeholder="Categoría" required>
-  <input type="number" id="monto" placeholder="Monto" min="0" required>
+  <input type="number" id="monto" placeholder="Monto" required>
   <button type="submit">Agregar gasto</button>
 </form>
 
@@ -30,12 +30,12 @@
 </table>
 
 <h2>Gastos por categoría</h2>
-<canvas id="grafico" width="400" height="400"></canvas>
+<canvas id="grafico"></canvas>
 
-<!-- ✅ Chart.js desde CDN -->
-<script src="https://cdn.jsdelivr.net/npmript>
+<!-- Librería externa -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- ✅ Tu código -->
+<!-- Tu código -->
 <script src="script.js"></script>
 
 </body>
