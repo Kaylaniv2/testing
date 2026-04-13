@@ -1,3 +1,8 @@
+console.log("✅ VERSION FIRESTORE ACTIVA");
+
+// ===============================
+// Referencias al DOM
+// ===============================
 const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
 const canvas = document.getElementById("grafico");
@@ -5,45 +10,58 @@ const canvas = document.getElementById("grafico");
 let grafico = null;
 
 // ===============================
-// 🔹 OBTENER GASTOS DESDE FIRESTORE
+// Obtener gastos desde Firestore
 // ===============================
 async function obtenerGastos() {
-  const snapshot = await db.collection("gastos").get();
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  try {
+    const snapshot = await db.collection("gastos").orderBy("fecha").get();
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("❌ Error obteniendo gastos:", error);
+    return [];
+  }
 }
 
 // ===============================
-// 🔹 RENDER TABLA
+// Renderizar tabla
 // ===============================
 async function renderTabla() {
   tabla.innerHTML = "";
+
   const gastos = await obtenerGastos();
 
   gastos.forEach(gasto => {
     const fila = document.createElement("tr");
+
     fila.innerHTML = `
       <td>${gasto.fecha}</td>
       <td>${gasto.categoria}</td>
       <td>$${gasto.monto}</td>
     `;
+
     tabla.appendChild(fila);
   });
 }
 
 // ===============================
-// 🔹 RENDER GRÁFICO
+// Renderizar gráfico
 // ===============================
 async function renderGrafico() {
   const gastos = await obtenerGastos();
-  const totales = {};
+
+  const totalesPorCategoria = {};
 
   gastos.forEach(g => {
-    totales[g.categoria] =
-      (totales[g.categoria] || 0) + g.monto;
+    totalesPorCategoria[g.categoria] =
+      (totalesPorCategoria[g.categoria] || 0) + g.monto;
   });
+
+  const categorias = Object.keys(totalesPorCategoria);
+  const montos = Object.values(totalesPorCategoria);
 
   if (grafico) {
     grafico.destroy();
@@ -52,9 +70,9 @@ async function renderGrafico() {
   grafico = new Chart(canvas, {
     type: "pie",
     data: {
-      labels: Object.keys(totales),
+      labels: categorias,
       datasets: [{
-        data: Object.values(totales),
+        data: montos,
         backgroundColor: [
           "#4CAF50",
           "#2196F3",
@@ -69,7 +87,7 @@ async function renderGrafico() {
 }
 
 // ===============================
-// 🔹 EVENTO SUBMIT (GUARDAR ONLINE)
+// Submit del formulario (GUARDAR ONLINE)
 // ===============================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -80,19 +98,27 @@ form.addEventListener("submit", async (e) => {
     monto: Number(document.getElementById("monto").value)
   };
 
-  // 🔥 Guardar en Firestore
-  await db.collection("gastos").add(gasto);
+  console.log("➡️ Intentando guardar gasto en Firestore:", gasto);
 
-  alert("Gasto agregado en la base de datos online ✅");
+  try {
+    const ref = await db.collection("gastos").add(gasto);
+    console.log("✅ Gasto guardado con ID:", ref.id);
 
-  form.reset();
+    alert("Gasto guardado ONLINE ✅");
 
-  await renderTabla();
-  await renderGrafico();
+    form.reset();
+
+    await renderTabla();
+    await renderGrafico();
+
+  } catch (error) {
+    console.error("❌ Error guardando gasto:", error);
+    alert("Error al guardar el gasto");
+  }
 });
 
 // ===============================
-// 🔹 CARGA INICIAL
+// Carga inicial
 // ===============================
 renderTabla();
 renderGrafico();
