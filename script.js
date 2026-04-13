@@ -1,6 +1,8 @@
 const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
+let grafico;
 
+// ======== LocalStorage ========
 function obtenerGastos() {
   return JSON.parse(localStorage.getItem("gastos")) || [];
 }
@@ -9,6 +11,7 @@ function guardarGastos(gastos) {
   localStorage.setItem("gastos", JSON.stringify(gastos));
 }
 
+// ======== Tabla ========
 function renderTabla() {
   tabla.innerHTML = "";
   const gastos = obtenerGastos();
@@ -26,6 +29,45 @@ function renderTabla() {
   });
 }
 
+// ======== Gráfico ========
+function renderGrafico() {
+  const gastos = obtenerGastos();
+  const totalesPorCategoria = {};
+
+  gastos.forEach(g => {
+    totalesPorCategoria[g.categoria] =
+      (totalesPorCategoria[g.categoria] || 0) + g.monto;
+  });
+
+  const categorias = Object.keys(totalesPorCategoria);
+  const montos = Object.values(totalesPorCategoria);
+
+  const ctx = document.getElementById("grafico");
+
+  if (grafico) {
+    grafico.destroy();
+  }
+
+  grafico = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: categorias,
+      datasets: [{
+        data: montos,
+        backgroundColor: [
+          "#4CAF50",
+          "#2196F3",
+          "#FFC107",
+          "#F44336",
+          "#9C27B0",
+          "#FF9800"
+        ]
+      }]
+    }
+  });
+}
+
+// ======== Evento form ========
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -41,8 +83,9 @@ form.addEventListener("submit", (e) => {
 
   form.reset();
   renderTabla();
+  renderGrafico();
 });
 
-// Mostrar gastos al cargar la página
+// ======== Inicial ========
 renderTabla();
-``
+renderGrafico();
