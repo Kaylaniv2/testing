@@ -15,6 +15,28 @@
     table {
       margin-top: 10px;
     }
+    body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f7fa;
+  padding: 20px;
+}
+
+form, table, canvas {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+button {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.85;
+}
   </style>
 </head>
 
@@ -86,6 +108,18 @@
 <!-- TU SCRIPT (IMPORTANTE EL ?v=3) -->
 <!-- ========================= -->
 <script src="script.js?v=3"></script>
+<h2>Resumen</h2>
 
+<div style="margin-bottom: 10px;">
+  <strong>Total:</strong> $<span id="total-general">0</span>
+</div>
+
+<h3>Filtrar por fechas</h3>
+
+<input type="date" id="desde">
+<input type="date" id="hasta">
+<button id="btn-filtrar">Filtrar</button>
+<button id="btn-limpiar">Limpiar</button>
+``
 </body>
 </html>
