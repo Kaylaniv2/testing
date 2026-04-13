@@ -24,7 +24,16 @@
 
 <form id="form-gastos">
   <input type="date" id="fecha" required>
-  <input type="text" id="categoria" placeholder="Categoría" required>
+<select id="categoria" required>
+  <option value="">Seleccionar categoría</option>
+  <option value="Alquiler">Alquiler</option>
+  <option value="Servicios">Servicios</option>
+  <option value="Comida">Comida</option>
+  <option value="Transporte">Transporte</option>
+  <option value="Salud">Salud</option>
+  <option value="Educación">Educación</option>
+  <option value="Otros">Otros</option>
+</select>
   <input type="number" id="monto" placeholder="Monto" required>
   <button type="submit">Agregar gasto</button>
 </form>
@@ -32,13 +41,14 @@
 <h2>Listado de gastos</h2>
 
 <table border="1">
-  <thead>
-    <tr>
-      <th>Fecha</th>
-      <th>Categoría</th>
-      <th>Monto</th>
-    </tr>
-  </thead>
+<thead>
+  <tr>
+    <th>Fecha</th>
+    <th>Categoría</th>
+    <th>Monto</th>
+    <th>Acciones</th>
+  </tr>
+</thead>
   <tbody id="tabla-gastos"></tbody>
 </table>
 
