@@ -52,33 +52,30 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Firebase SDK (modo compat, clásico) -->
+<!-- Firebase (modo compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBFlFoSRfArW_GkcEAQiJQ9Sa2qAM-o3I4",
     authDomain: "testing-gastos.firebaseapp.com",
     projectId: "testing-gastos",
-    storageBucket: "testing-gastos.firebasestorage.app",
+    storageBucket: "testing-gastos.appspot.com",
     messagingSenderId: "752780947015",
     appId: "1:752780947015:web:f340d547ad55a609590b62"
   };
 
-  // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // Base de datos Firestore disponible globalmente
-  const db = firebase.firestore();
+  // Firestore disponible globalmente
+  window.db = firebase.firestore();
 </script>
 
 <!-- ========================= -->
-<!-- Tu lógica de la app -->
+<!-- TU SCRIPT (IMPORTANTE EL ?v=3) -->
 <!-- ========================= -->
-<script src="script.js"></script>
+<script src="script.js?v=3"></script>
 
 </body>
 </html>
-``
