@@ -1,8 +1,5 @@
 console.log("✅ VERSION FIRESTORE ACTIVA");
 
-// ===============================
-// DOM
-// ===============================
 const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
 const canvas = document.getElementById("grafico");
@@ -17,14 +14,10 @@ const btnLimpiar = document.getElementById("btn-limpiar");
 
 let grafico = null;
 let gastoEditandoId = null;
-
 let filtroDesde = null;
 let filtroHasta = null;
 let mesSeleccionado = "";
 
-// ===============================
-// Firestore
-// ===============================
 async function obtenerGastos() {
   let query = db.collection("gastos");
 
@@ -37,21 +30,15 @@ async function obtenerGastos() {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// ===============================
-// Utilidades
-// ===============================
 function agruparPorMes(gastos) {
   const res = {};
   gastos.forEach(g => {
-    const mes = g.fecha.slice(0, 7); // YYYY-MM
+    const mes = g.fecha.slice(0, 7);
     res[mes] = (res[mes] || 0) + g.monto;
   });
   return res;
 }
 
-// ===============================
-// Tabla
-// ===============================
 async function renderTabla() {
   tabla.innerHTML = "";
   const gastos = await obtenerGastos();
@@ -71,14 +58,10 @@ async function renderTabla() {
   });
 }
 
-// ===============================
-// Totales
-// ===============================
 async function renderTotales() {
   const gastos = await obtenerGastos();
 
-  totalGeneralSpan.textContent =
-    gastos.reduce((a, g) => a + g.monto, 0);
+  totalGeneralSpan.textContent = gastos.reduce((a, g) => a + g.monto, 0);
 
   const porMes = agruparPorMes(gastos);
   mesSelect.innerHTML = `<option value="">Todos</option>`;
@@ -92,27 +75,16 @@ async function renderTotales() {
 
   mesSelect.value = mesSeleccionado;
 
-  if (mesSeleccionado) {
-    totalMesSpan.textContent = gastos
-      .filter(g => g.fecha.startsWith(mesSeleccionado))
-      .reduce((a, g) => a + g.monto, 0);
-  } else {
-    totalMesSpan.textContent =
-      gastos.reduce((a, g) => a + g.monto, 0);
-  }
+  totalMesSpan.textContent = mesSeleccionado
+    ? gastos.filter(g => g.fecha.startsWith(mesSeleccionado)).reduce((a, g) => a + g.monto, 0)
+    : gastos.reduce((a, g) => a + g.monto, 0);
 }
 
-// ===============================
-// Gráficos
-// ===============================
 async function renderGraficoCategoria() {
   const gastos = await obtenerGastos();
   const totales = {};
 
-  gastos.forEach(g =>
-    totales[g.categoria] = (totales[g.categoria] || 0) + g.monto
-  );
-
+  gastos.forEach(g => totales[g.categoria] = (totales[g.categoria] || 0) + g.monto);
   const total = Object.values(totales).reduce((a, b) => a + b, 0);
 
   if (grafico) grafico.destroy();
@@ -120,16 +92,8 @@ async function renderGraficoCategoria() {
   grafico = new Chart(canvas, {
     type: "pie",
     data: {
-      labels: Object.keys(totales).map(
-        c => `${c} (${((totales[c] / total) * 100).toFixed(1)}%)`
-      ),
+      labels: Object.keys(totales).map(c => `${c} (${((totales[c]/total)*100).toFixed(1)}%)`),
       datasets: [{ data: Object.values(totales) }]
-    },
-    options: {
-      plugins: {
-        title: { display: true, text: "Distribución por categoría" },
-        legend: { position: "bottom" }
-      }
     }
   });
 }
@@ -145,22 +109,11 @@ async function renderGraficoMensual() {
     type: "bar",
     data: {
       labels: meses,
-      datasets: [{
-        label: "Total mensual",
-        data: meses.map(m => porMes[m])
-      }]
-    },
-    options: {
-      plugins: {
-        title: { display: true, text: "Comparativa mensual" }
-      }
+      datasets: [{ label: "Total mensual", data: meses.map(m => porMes[m]) }]
     }
   });
 }
 
-// ===============================
-// CRUD
-// ===============================
 function editarGasto(g) {
   fecha.value = g.fecha;
   categoria.value = g.categoria;
@@ -174,29 +127,23 @@ async function borrarGasto(id) {
   await refrescarUI();
 }
 
-form.addEventListener("submit", async e => {
+form.onsubmit = async e => {
   e.preventDefault();
-
   const gasto = {
     fecha: fecha.value,
     categoria: categoria.value,
     monto: Number(monto.value)
   };
 
-  if (gastoEditandoId) {
-    await db.collection("gastos").doc(gastoEditandoId).update(gasto);
-    gastoEditandoId = null;
-  } else {
-    await db.collection("gastos").add(gasto);
-  }
+  gastoEditandoId
+    ? await db.collection("gastos").doc(gastoEditandoId).update(gasto)
+    : await db.collection("gastos").add(gasto);
 
+  gastoEditandoId = null;
   form.reset();
   await refrescarUI();
-});
+};
 
-// ===============================
-// Eventos
-// ===============================
 btnFiltrar.onclick = async () => {
   filtroDesde = desde.value || null;
   filtroHasta = hasta.value || null;
@@ -204,10 +151,8 @@ btnFiltrar.onclick = async () => {
 };
 
 btnLimpiar.onclick = async () => {
-  filtroDesde = null;
-  filtroHasta = null;
-  desde.value = "";
-  hasta.value = "";
+  filtroDesde = filtroHasta = null;
+  desde.value = hasta.value = "";
   await refrescarUI();
 };
 
@@ -216,22 +161,14 @@ mesSelect.onchange = async () => {
   await refrescarUI();
 };
 
-tipoGraficoSelect.onchange = async () => {
-  await refrescarUI();
-};
+tipoGraficoSelect.onchange = refrescarUI;
 
-// ===============================
-// Refresco general
-// ===============================
 async function refrescarUI() {
   await renderTabla();
   await renderTotales();
-
-  if (tipoGraficoSelect.value === "mes") {
-    await renderGraficoMensual();
-  } else {
-    await renderGraficoCategoria();
-  }
+  tipoGraficoSelect.value === "mes"
+    ? await renderGraficoMensual()
+    : await renderGraficoCategoria();
 }
 
 refrescarUI();
