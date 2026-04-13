@@ -7,14 +7,29 @@ const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
 const canvas = document.getElementById("grafico");
 
+const totalGeneralSpan = document.getElementById("total-general");
+const btnFiltrar = document.getElementById("btn-filtrar");
+const btnLimpiar = document.getElementById("btn-limpiar");
+
 let grafico = null;
+let gastoEditandoId = null;
+
+let filtroDesde = null;
+let filtroHasta = null;
 
 // ===============================
 // Obtener gastos desde Firestore
 // ===============================
 async function obtenerGastos() {
   try {
-    const snapshot = await db.collection("gastos").orderBy("fecha").get();
+    let query = db.collection("gastos");
+
+    if (filtroDesde) query = query.where("fecha", ">=", filtroDesde);
+    if (filtroHasta) query = query.where("fecha", "<=", filtroHasta);
+
+    query = query.orderBy("fecha");
+
+    const snapshot = await query.get();
 
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -42,6 +57,7 @@ async function renderTabla() {
       <td>${gasto.categoria}</td>
       <td>$${gasto.monto}</td>
       <td>
+        <button onclick='editarGasto(${JSON.stringify(gasto)})'>✏️</button>
         <button onclick="borrarGasto('${gasto.id}')">🗑️</button>
       </td>
     `;
@@ -63,19 +79,14 @@ async function renderGrafico() {
       (totalesPorCategoria[g.categoria] || 0) + g.monto;
   });
 
-  const categorias = Object.keys(totalesPorCategoria);
-  const montos = Object.values(totalesPorCategoria);
-
-  if (grafico) {
-    grafico.destroy();
-  }
+  if (grafico) grafico.destroy();
 
   grafico = new Chart(canvas, {
     type: "pie",
     data: {
-      labels: categorias,
+      labels: Object.keys(totalesPorCategoria),
       datasets: [{
-        data: montos,
+        data: Object.values(totalesPorCategoria),
         backgroundColor: [
           "#4CAF50",
           "#2196F3",
@@ -90,25 +101,37 @@ async function renderGrafico() {
 }
 
 // ===============================
-// 🆕 Borrar gasto (NUEVO)
+// Total general
 // ===============================
-async function borrarGasto(id) {
-  const confirmar = confirm("¿Eliminar este gasto?");
-  if (!confirmar) return;
-
-  try {
-    await db.collection("gastos").doc(id).delete();
-    alert("Gasto eliminado ✅");
-    await renderTabla();
-    await renderGrafico();
-  } catch (error) {
-    console.error("❌ Error al eliminar gasto:", error);
-    alert("Error al eliminar el gasto");
-  }
+async function renderTotalGeneral() {
+  const gastos = await obtenerGastos();
+  const total = gastos.reduce((acc, g) => acc + g.monto, 0);
+  totalGeneralSpan.textContent = total;
 }
 
 // ===============================
-// Submit del formulario (GUARDAR ONLINE)
+// Editar gasto
+// ===============================
+function editarGasto(gasto) {
+  document.getElementById("fecha").value = gasto.fecha;
+  document.getElementById("categoria").value = gasto.categoria;
+  document.getElementById("monto").value = gasto.monto;
+
+  gastoEditandoId = gasto.id;
+}
+
+// ===============================
+// Borrar gasto
+// ===============================
+async function borrarGasto(id) {
+  if (!confirm("¿Eliminar este gasto?")) return;
+
+  await db.collection("gastos").doc(id).delete();
+  await refrescarUI();
+}
+
+// ===============================
+// Submit del formulario
 // ===============================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -119,27 +142,47 @@ form.addEventListener("submit", async (e) => {
     monto: Number(document.getElementById("monto").value)
   };
 
-  console.log("➡️ Intentando guardar gasto en Firestore:", gasto);
-
-  try {
-    const ref = await db.collection("gastos").add(gasto);
-    console.log("✅ Gasto guardado con ID:", ref.id);
-
-    alert("Gasto guardado ONLINE ✅");
-
-    form.reset();
-
-    await renderTabla();
-    await renderGrafico();
-
-  } catch (error) {
-    console.error("❌ Error guardando gasto:", error);
-    alert("Error al guardar el gasto");
+  if (gastoEditandoId) {
+    await db.collection("gastos").doc(gastoEditandoId).update(gasto);
+    gastoEditandoId = null;
+    alert("Gasto actualizado ✅");
+  } else {
+    await db.collection("gastos").add(gasto);
+    alert("Gasto agregado ✅");
   }
+
+  form.reset();
+  await refrescarUI();
 });
+
+// ===============================
+// Filtros
+// ===============================
+btnFiltrar.addEventListener("click", async () => {
+  filtroDesde = document.getElementById("desde").value || null;
+  filtroHasta = document.getElementById("hasta").value || null;
+  await refrescarUI();
+});
+
+btnLimpiar.addEventListener("click", async () => {
+  filtroDesde = null;
+  filtroHasta = null;
+  document.getElementById("desde").value = "";
+  document.getElementById("hasta").value = "";
+  await refrescarUI();
+});
+
+// ===============================
+// Refresco general
+// ===============================
+async function refrescarUI() {
+  await renderTabla();
+  await renderGrafico();
+  await renderTotalGeneral();
+}
 
 // ===============================
 // Carga inicial
 // ===============================
-renderTabla();
-renderGrafico();
+refrescarUI();
+``
