@@ -2,7 +2,7 @@ const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
 let grafico;
 
-// ======== LocalStorage ========
+// ===== LocalStorage =====
 function obtenerGastos() {
   return JSON.parse(localStorage.getItem("gastos")) || [];
 }
@@ -11,25 +11,23 @@ function guardarGastos(gastos) {
   localStorage.setItem("gastos", JSON.stringify(gastos));
 }
 
-// ======== Tabla ========
+// ===== Tabla =====
 function renderTabla() {
   tabla.innerHTML = "";
   const gastos = obtenerGastos();
 
   gastos.forEach(gasto => {
     const fila = document.createElement("tr");
-
     fila.innerHTML = `
       <td>${gasto.fecha}</td>
       <td>${gasto.categoria}</td>
       <td>$${gasto.monto}</td>
     `;
-
     tabla.appendChild(fila);
   });
 }
 
-// ======== Gráfico ========
+// ===== Gráfico =====
 function renderGrafico() {
   const gastos = obtenerGastos();
   const totalesPorCategoria = {};
@@ -67,8 +65,8 @@ function renderGrafico() {
   });
 }
 
-// ======== Evento form ========
-form.addEventListener("submit", (e) => {
+// ===== Evento =====
+form.addEventListener("submit", e => {
   e.preventDefault();
 
   const gasto = {
@@ -86,6 +84,6 @@ form.addEventListener("submit", (e) => {
   renderGrafico();
 });
 
-// ======== Inicial ========
+// ===== Inicial =====
 renderTabla();
 renderGrafico();
