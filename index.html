@@ -5,6 +5,7 @@
   <title>Gastos del Hogar</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <h1>Control de Gastos</h1>
@@ -16,12 +17,6 @@
   <button type="submit">Agregar gasto</button>
 </form>
 
-<canvas id="grafico"></canvas>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js" defer></script>
-</body>
-</html>
 <h2>Listado de gastos</h2>
 
 <table border="1">
@@ -32,6 +27,14 @@
       <th>Monto</th>
     </tr>
   </thead>
-  <tbody id="tabla-gastos">
-  </tbody>
+  <tbody id="tabla-gastos"></tbody>
 </table>
+
+<canvas id="grafico"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js" defer></script>
+
+</body>
+</html>
+``
