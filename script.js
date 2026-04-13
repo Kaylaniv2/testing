@@ -1,9 +1,8 @@
-// ===== Referencias al DOM =====
 const form = document.getElementById("form-gastos");
 const tabla = document.getElementById("tabla-gastos");
 const canvas = document.getElementById("grafico");
 
-let grafico = null;
+let grafico;
 
 // ===== LocalStorage =====
 function obtenerGastos() {
@@ -14,10 +13,9 @@ function guardarGastos(gastos) {
   localStorage.setItem("gastos", JSON.stringify(gastos));
 }
 
-// ===== Render tabla =====
+// ===== Tabla =====
 function renderTabla() {
   tabla.innerHTML = "";
-
   const gastos = obtenerGastos();
 
   gastos.forEach(gasto => {
@@ -31,7 +29,7 @@ function renderTabla() {
   });
 }
 
-// ===== Render gráfico =====
+// ===== Gráfico =====
 function renderGrafico() {
   const gastos = obtenerGastos();
   const totales = {};
@@ -40,9 +38,6 @@ function renderGrafico() {
     totales[g.categoria] = (totales[g.categoria] || 0) + g.monto;
   });
 
-  const categorias = Object.keys(totales);
-  const montos = Object.values(totales);
-
   if (grafico) {
     grafico.destroy();
   }
@@ -50,24 +45,23 @@ function renderGrafico() {
   grafico = new Chart(canvas, {
     type: "pie",
     data: {
-      labels: categorias,
+      labels: Object.keys(totales),
       datasets: [{
-        data: montos,
+        data: Object.values(totales),
         backgroundColor: [
           "#4CAF50",
           "#2196F3",
           "#FFC107",
           "#F44336",
-          "#9C27B0",
-          "#FF9800"
+          "#9C27B0"
         ]
       }]
     }
   });
 }
 
-// ===== Evento submit =====
-form.addEventListener("submit", (e) => {
+// ===== Evento =====
+form.addEventListener("submit", e => {
   e.preventDefault();
 
   const gasto = {
@@ -80,6 +74,8 @@ form.addEventListener("submit", (e) => {
   gastos.push(gasto);
   guardarGastos(gastos);
 
+  alert("Gasto agregado"); // ✅ RESTAURADO
+
   form.reset();
   renderTabla();
   renderGrafico();
@@ -88,3 +84,4 @@ form.addEventListener("submit", (e) => {
 // ===== Inicial =====
 renderTabla();
 renderGrafico();
+``
